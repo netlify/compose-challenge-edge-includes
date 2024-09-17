@@ -1,58 +1,75 @@
-import { TRPCError } from "@trpc/server";
-import { procedure, router } from "./trpc";
-import { teamSettingsSchema } from "../schema/team-settings-schema";
+import { TRPCError } from '@trpc/server';
+import { procedure, router } from './trpc';
+
+const EDGE_INCLUDE_ENABLED = 'EDGE_INCLUDE_ENABLED';
 
 export const appRouter = router({
-  teamSettings: {
-    query: procedure.query(async ({ ctx: { teamId, client } }) => {
-      if (!teamId) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "teamId is required",
+  siteConfig: {
+    queryConfig: procedure.query(
+      async ({ ctx: { siteId, teamId, client } }) => {
+        if (!teamId || !siteId) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'teamId and siteId are required',
+          });
+        }
+        const envVars = await client.getEnvironmentVariables({
+          accountId: teamId,
+          siteId,
         });
+
+        const enabledVar = envVars
+          .find((val) => val.key === EDGE_INCLUDE_ENABLED)
+          ?.values.find((val) => val.context === 'all');
+
+        return {
+          enabledForSite: !!enabledVar?.value && enabledVar.value !== 'false',
+        };
       }
-      const teamConfig = await client.getTeamConfiguration(teamId);
-      if (!teamConfig) {
+    ),
+
+    mutateEnablement: procedure.mutation(
+      async ({ ctx: { teamId, siteId, client } }) => {
+        if (!teamId || !siteId) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'teamId and siteId are required',
+          });
+        }
+
+        await client.createOrUpdateVariable({
+          accountId: teamId,
+          siteId,
+          key: EDGE_INCLUDE_ENABLED,
+          value: 'true',
+        });
+
         return;
       }
-      const result = teamSettingsSchema.safeParse(teamConfig.config);
-      if (!result.success) {
-        console.warn(
-          "Failed to parse team settings",
-          JSON.stringify(result.error, null, 2)
-        );
-      }
-      return result.data;
-    }),
+    ),
 
-    mutate: procedure
-      .input(teamSettingsSchema)
-      .mutation(async ({ ctx: { teamId, client }, input }) => {
-        if (!teamId) {
+    mutateDisablement: procedure.mutation(
+      async ({ ctx: { teamId, siteId, client } }) => {
+        if (!teamId || !siteId) {
           throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "teamId is required",
+            code: 'BAD_REQUEST',
+            message: 'teamId and siteId are required',
           });
         }
 
         try {
-          const existingConfig = await client.getTeamConfiguration(teamId);
-          if (!existingConfig) {
-            await client.createTeamConfiguration(teamId, input);
-          } else {
-            await client.updateTeamConfiguration(teamId, {
-              ...(existingConfig?.config || {}),
-              ...input,
-            });
-          }
-        } catch (e) {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "Failed to save team configuration",
-            cause: e,
+          await client.deleteEnvironmentVariable({
+            accountId: teamId,
+            siteId,
+            key: EDGE_INCLUDE_ENABLED,
           });
+        } catch (e) {
+          console.error(
+            `Failed to remove ${EDGE_INCLUDE_ENABLED} env var for site: ${siteId} and team: ${teamId}`
+          );
         }
-      }),
+      }
+    ),
   },
 });
 
