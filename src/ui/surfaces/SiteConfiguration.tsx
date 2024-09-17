@@ -43,8 +43,10 @@ export const SiteConfiguration = () => {
             <CardTitle>Disable for site</CardTitle>
             <div>
               <p>
-                Disabling this affects the Content-Security-Policy header of
-                future deploys.
+                By disabling this extension on your site, you'll no longer be
+                able to use edge includes and will not be able to participate in
+                the <a href='https://netlify.com/compose'>Netlify Compose</a>{' '}
+                Code Challenge.
               </p>
               <Button
                 className='tw-mt-4'
@@ -61,8 +63,10 @@ export const SiteConfiguration = () => {
             <CardTitle>Enable for site</CardTitle>
             <div>
               <p>
-                Enabling affects the Content-Security-Policy header of future
-                deploys.
+                By enabling this extension on your site, you'll be able to use
+                edge includes and participate in the{' '}
+                <a href='https://netlify.com/compose'>Netlify Compose</a> Code
+                Challenge.
               </p>
               <Button
                 className='tw-mt-4'
