@@ -1,18 +1,79 @@
 import {
   Card,
   CardTitle,
+  Button,
   SiteConfigurationSurface,
-} from "@netlify/sdk/ui/react/components";
-import { useNetlifySDK } from "@netlify/sdk/ui/react";
+  CardLoader,
+} from '@netlify/sdk/ui/react/components';
+import { trpc } from '../trpc';
 
 export const SiteConfiguration = () => {
-  const sdk = useNetlifySDK();
+  const trpcUtils = trpc.useUtils();
+  const siteConfigQuery = trpc.siteConfig.queryConfig.useQuery();
+  const siteEnablementMutation = trpc.siteConfig.mutateEnablement.useMutation({
+    onSuccess: async () => {
+      await trpcUtils.siteConfig.queryConfig.invalidate();
+    },
+  });
+  const siteDisablementMutation = trpc.siteConfig.mutateDisablement.useMutation(
+    {
+      onSuccess: async () => {
+        await trpcUtils.siteConfig.queryConfig.invalidate();
+      },
+    }
+  );
+
+  const onEnableHandler = () => {
+    siteEnablementMutation.mutate();
+  };
+
+  const onDisableHandler = () => {
+    siteDisablementMutation.mutate();
+  };
+
+  if (siteConfigQuery.isLoading) {
+    return <CardLoader />;
+  }
 
   return (
     <SiteConfigurationSurface>
       <Card>
-        <CardTitle>Example Section for {sdk.extension.name}</CardTitle>
-        <p>This is an example site configuration.</p>
+        {siteConfigQuery.data?.enabledForSite ? (
+          <>
+            <CardTitle>Disable for site</CardTitle>
+            <div>
+              <p>
+                Disabling this affects the Content-Security-Policy header of
+                future deploys.
+              </p>
+              <Button
+                className='tw-mt-4'
+                loading={siteDisablementMutation.isPending}
+                onClick={onDisableHandler}
+                variant='danger'
+              >
+                Disable
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <CardTitle>Enable for site</CardTitle>
+            <div>
+              <p>
+                Enabling affects the Content-Security-Policy header of future
+                deploys.
+              </p>
+              <Button
+                className='tw-mt-4'
+                loading={siteEnablementMutation.isPending}
+                onClick={onEnableHandler}
+              >
+                Enable
+              </Button>
+            </div>
+          </>
+        )}
       </Card>
     </SiteConfigurationSurface>
   );
