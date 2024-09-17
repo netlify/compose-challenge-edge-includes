@@ -11,6 +11,7 @@ config:
 
   ui:
     surfaces:
-      - extension-top-level-site-configuration
+      - extension-site-general-configuration
+
 
 
