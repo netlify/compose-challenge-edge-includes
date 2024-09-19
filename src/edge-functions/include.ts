@@ -1,8 +1,8 @@
-import { HTMLRewriter } from 'https://ghuc.cc/worker-tools/html-rewriter/index.ts';
+import { HTMLRewriter, HTMLRewriterTypes } from 'https://ghuc.cc/worker-tools/html-rewriter/index.ts';
 import { Config, Context } from "@netlify/edge-functions";
 
 class ElementHandler {
-  async element(element) {
+  async element(element: HTMLRewriterTypes.Element) {
     const url = element.getAttribute('href');
     let response = await fetch(new Request(url));
     if(response.ok) {
