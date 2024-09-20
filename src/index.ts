@@ -3,7 +3,7 @@ import { NetlifyExtension } from '@netlify/sdk';
 
 const extension = new NetlifyExtension();
 
-extension.addBuildEventHandler('onSuccess', async ({constants}) => {
+extension.addBuildEventHandler('onSuccess', async () => {
   const extensionConfigured = process.env.EDGE_INCLUDE_ENABLED;
   if (!extensionConfigured || extensionConfigured === 'false') {
     return;
