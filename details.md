@@ -1,4 +1,4 @@
-An extension for use during Netlify Compose Conf 2024
+This extension was created for the Netlify Compose 2024 Code Challenge.
 
 ## Add this extension to join the Compose Code Challenge
 
@@ -8,10 +8,10 @@ This will allow you to use edge includes in your site, pulling content into your
 
 ```html
 <!--
-  This custom element will be replaced 
-  by the content returned from the href.
+ This custom element will be replaced by the content returned from the href.
 -->
-<netlify-edge-include href="https://example.com/some-html"></netlify-edge-include> 
+<netlify-edge-include href="https://example.com/some-html">
+</netlify-edge-include>
 ```
 
-Note: This extension is intended as an example and not for production use.
+Note: This extension is not intended for production use beyond the scope of the Compose Code Challenge.
